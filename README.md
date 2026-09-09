@@ -58,8 +58,8 @@ These are the only current, correct figures — this file previously existed as 
 This build is a strong clickable demo but is **not yet a working product**. Before it's handed to a paying client:
 
 - **No real WhatsApp connection** — the chat is a local JS simulation, not the WhatsApp Cloud API
-- **No real AI** — responses are keyword-matched (`menu`, `hour`, `order`, `location`, `price`) against hardcoded text, not a language model. Oshiwambo/Afrikaans responses aren't implemented despite being advertised
-- **No persistence** — nothing is saved; "Save Settings" has no handler, chat resets on reload
+- **No real AI** — the simulator now runs a complete scripted conversation (numbered menu, browsable catalogue, working order and booking flows), but it is a deterministic state machine, not a language model. Oshiwambo/Afrikaans responses aren't implemented despite being advertised
+- **No persistence** — nothing is saved server-side; "Save Settings" has no handler, and orders/bookings captured in the simulator live in the browser session only and clear on reload
 - **No authentication** — the SEEEEOH admin dashboard (platform revenue, per-client MRR) is reachable from a public button on the landing page, same as the business dashboard
 - **All metrics are hardcoded** — message counts, AI response rates, revenue figures are typed into the HTML, not computed
 

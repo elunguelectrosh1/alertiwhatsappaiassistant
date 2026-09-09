@@ -21,7 +21,7 @@ The core value proposition: a business's WhatsApp number is connected to an AI a
 
 A single static HTML/CSS/JS file — no backend, no database, no real WhatsApp connection. It's a strong clickable **demo**, not a working product:
 
-- Chat is a local JS simulation; "AI" is 6 keyword branches (`menu`, `hour`, `order`, `location`, `price`) over 4 hardcoded business types (restaurant, salon, electronics retail, home services)
+- Chat is a local JS simulation over 4 hardcoded business types (restaurant, salon, electronics retail, home services). It is a full scripted state machine — a numbered main menu, catalogue browsing, and end-to-end order/booking capture with references — driven by per-business config data, but it is deterministic, not a language model, and captured records are held in browser memory only
 - Every dashboard metric (247 messages, 94% AI rate, 43 orders, N$54,300 revenue, 47 businesses, etc.) is typed directly into the HTML — not computed
 - Nothing persists: "Save Settings" has no handler; chat resets on reload
 - No authentication — both dashboards, including platform revenue and per-client MRR, open from public buttons on the landing page
