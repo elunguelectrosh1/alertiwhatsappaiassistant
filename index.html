@@ -731,6 +731,147 @@
             font-weight: 600;
             font-size: 14px;
         }
+        /* WhatsApp simulator — typing indicator, quick replies, capture log */
+        .chat-typing {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+
+        .chat-typing .message-bubble {
+            background: var(--accent);
+            border-radius: 8px 0 8px 8px;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .chat-typing span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #667781;
+            animation: typing-bounce 1.2s infinite ease-in-out;
+        }
+
+        .chat-typing span:nth-child(2) { animation-delay: 0.15s; }
+        .chat-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes typing-bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .chat-typing span { animation: none; }
+        }
+
+        .message-link {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #075E54;
+        }
+
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px 20px 0;
+            background: #f0f0f0;
+        }
+
+        .quick-replies:empty { display: none; }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+
+        .quick-reply {
+            padding: 7px 14px;
+            background: white;
+            border: 1px solid #cfd8d5;
+            border-radius: 20px;
+            font-size: 13px;
+            font-family: inherit;
+            color: #075E54;
+            cursor: pointer;
+        }
+
+        .quick-reply:hover { background: #e7f5f1; }
+
+        .quick-reply:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        .capture-log {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .capture-log h4 {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .capture-log .capture-hint {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .capture-item {
+            border: 1px solid #e5e7eb;
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-top: 12px;
+        }
+
+        .capture-item-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .capture-item-meta {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 4px;
+            white-space: pre-line;
+        }
+
+        .capture-badge {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        @media (max-width: 480px) {
+            .chat-messages { height: 60vh; }
+            .message-bubble { max-width: 85%; }
+        }
+
     </style>
 </head>
 <body>
@@ -917,11 +1058,11 @@
                 <div class="view" id="whatsapp-demo">
                     <div style="margin-bottom: 20px;">
                         <h3>Try the AI Assistant</h3>
-                        <p style="color: #6b7280; margin-top: 8px;">See how customers interact with your WhatsApp AI agent</p>
+                        <p style="color: #6b7280; margin-top: 8px;">A live simulation of the WhatsApp agent. Reply with a number to pick an option, or type a question in your own words.</p>
                     </div>
 
                     <div style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 10px; font-weight: 500;">Simulate as:</label>
+                        <label for="businessTypeSelect" style="display: block; margin-bottom: 10px; font-weight: 500;">Simulate as:</label>
                         <select id="businessTypeSelect" onchange="switchBusiness()" style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; width: 100%; max-width: 300px;">
                             <option value="restaurant">Tasty Bites Restaurant</option>
                             <option value="salon">Glam Beauty Salon</option>
@@ -939,22 +1080,27 @@
                             </div>
                         </div>
 
-                        <div class="chat-messages" id="chatMessages"></div>
+                        <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-label="WhatsApp conversation"></div>
+
+                        <div class="quick-replies" id="chatQuickReplies" aria-label="Suggested replies"></div>
 
                         <div class="chat-input">
-                            <input type="text" id="customerMessage" placeholder="Type a message..." onkeypress="handleEnter(event)">
-                            <button class="send-btn" onclick="sendCustomerMessage()">➤</button>
+                            <label for="customerMessage" class="sr-only">Message as the customer</label>
+                            <input type="text" id="customerMessage" placeholder="Type a message or a number..." autocomplete="off" onkeydown="handleEnter(event)">
+                            <button class="send-btn" onclick="sendCustomerMessage()" aria-label="Send message">➤</button>
                         </div>
                     </div>
 
                     <div style="margin-top: 20px; background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
                         <strong>💡 Try asking:</strong>
-                        <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px;">
-                            <button onclick="quickQuestion('What is on your menu?')" style="padding: 8px 15px; background: white; border: 1px solid #e5e7eb; border-radius: 20px; cursor: pointer; font-size: 13px;">What's on your menu?</button>
-                            <button onclick="quickQuestion('What are your prices?')" style="padding: 8px 15px; background: white; border: 1px solid #e5e7eb; border-radius: 20px; cursor: pointer; font-size: 13px;">What are your prices?</button>
-                            <button onclick="quickQuestion('What time do you open?')" style="padding: 8px 15px; background: white; border: 1px solid #e5e7eb; border-radius: 20px; cursor: pointer; font-size: 13px;">Opening hours?</button>
-                            <button onclick="quickQuestion('I want to order')" style="padding: 8px 15px; background: white; border: 1px solid #e5e7eb; border-radius: 20px; cursor: pointer; font-size: 13px;">Make an order</button>
-                        </div>
+                        <div id="demoSuggestions" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px;"></div>
+                    </div>
+
+                    <div class="capture-log">
+                        <h4>Captured in this session</h4>
+                        <p class="capture-hint">Every completed order or booking becomes a structured record — the same record the agent would write to your inbox on a live number.</p>
+                        <div id="demoCaptureList"></div>
+                        <p class="capture-hint" id="demoCaptureEmpty" style="margin-top: 12px;">Nothing captured yet. Complete an order or booking in the chat above.</p>
                     </div>
                 </div>
 
@@ -1421,62 +1567,1088 @@
     </div>
 
     <script>
+        /* ==================================================================
+           WhatsApp simulator
+           ------------------------------------------------------------------
+           Each demo business is described as data: a browsable catalogue,
+           structured opening hours, a location and a fulfilment flow
+           ("order" for retail/food, "booking" for appointment services).
+           The conversation engine below turns that data into a numbered
+           menu the customer can drive entirely by replying with digits,
+           and every completed flow produces a structured record.
+        ================================================================== */
+
         const businesses = {
             restaurant: {
                 name: "Tasty Bites Restaurant",
                 avatar: "TB",
                 type: "Restaurant",
-                responses: {
-                    menu: "🍔 Our Menu:\n\n**Burgers:**\n• Beef Burger - N$65\n• Chicken Burger - N$60\n• Veggie Burger - N$55\n\n**Sides:**\n• Fries - N$25\n• Onion Rings - N$30\n• Coleslaw - N$20\n\n**Drinks:**\n• Soft Drinks - N$15\n• Milkshakes - N$35\n\nWould you like to place an order? 😊",
-                    hours: "⏰ We're open:\n\nMon-Sat: 10:00 AM - 10:00 PM\nSunday: 11:00 AM - 9:00 PM\n\nWe're currently OPEN! 🎉",
-                    order: "Great! I'd love to help you order. 🛒\n\nWhat would you like?\n\n1️⃣ Burgers\n2️⃣ Sides\n3️⃣ Drinks\n4️⃣ Combo Meals\n\nJust tell me what you'd like!",
-                    location: "📍 Find us at:\n\nSam Nujoma Drive, Windhoek\n(Next to Maerua Mall)\n\nFree parking available! 🚗",
-                    price: "💰 Our prices are very affordable!\n\nBurgers start from N$55\nMost combos are N$85-N$110\n\nWould you like to see our full menu?",
-                    default: "Hi! 👋 Welcome to Tasty Bites!\n\nI can help you with:\n• View our menu 🍔\n• Place an order 🛒\n• Check opening hours ⏰\n• Get directions 📍\n\nWhat would you like to know?"
-                }
+                flow: "order",
+                greeting: "Hi! \u{1F44B} Welcome to Tasty Bites!",
+                browseLabel: "View our menu \u{1F354}",
+                actLabel: "Place an order \u{1F6D2}",
+                catalogueTitle: "\u{1F354} Our Menu",
+                catalogueOutro: "Reply 2 to start an order.",
+                phone: "+264 61 123 4567",
+                hours: { 1: [600, 1320], 2: [600, 1320], 3: [600, 1320], 4: [600, 1320], 5: [600, 1320], 6: [600, 1320], 0: [660, 1260] },
+                location: {
+                    lines: ["Sam Nujoma Drive, Windhoek", "(Next to Maerua Mall)"],
+                    note: "Free parking available! \u{1F697}",
+                    mapQuery: "Sam Nujoma Drive, Windhoek, Namibia"
+                },
+                priceNote: "Burgers from N$55\nSides from N$20\nCombo meals N$85 – N$110\nDrinks from N$15",
+                delivery: { fee: 35, etaDelivery: "30–45 min", etaCollect: "15–20 min", radius: "Windhoek, up to 15 km" },
+                categories: [
+                    { name: "Burgers", emoji: "\u{1F354}", items: [
+                        { name: "Beef Burger", price: 65 },
+                        { name: "Chicken Burger", price: 60 },
+                        { name: "Veggie Burger", price: 55 }
+                    ]},
+                    { name: "Sides", emoji: "\u{1F35F}", items: [
+                        { name: "Fries", price: 25 },
+                        { name: "Onion Rings", price: 30 },
+                        { name: "Coleslaw", price: 20 }
+                    ]},
+                    { name: "Drinks", emoji: "\u{1F964}", items: [
+                        { name: "Soft Drink", price: 15 },
+                        { name: "Milkshake", price: 35 }
+                    ]},
+                    { name: "Combo Meals", emoji: "\u{1F371}", items: [
+                        { name: "Beef Combo (burger, fries, drink)", price: 110 },
+                        { name: "Chicken Combo (burger, fries, drink)", price: 95 },
+                        { name: "Veggie Combo (burger, fries, drink)", price: 85 }
+                    ]}
+                ]
             },
+
             salon: {
                 name: "Glam Beauty Salon",
                 avatar: "GB",
                 type: "Beauty & Wellness",
-                responses: {
-                    menu: "💅 Our Services:\n\n**Hair:**\n• Wash & Blow Dry - N$150\n• Haircut - N$180\n• Color Treatment - N$450\n• Braids - N$250+\n\n**Nails:**\n• Manicure - N$120\n• Pedicure - N$150\n• Gel Nails - N$280\n\n**Beauty:**\n• Facial - N$200\n• Makeup - N$350\n\nWould you like to book? 📅",
-                    hours: "⏰ Opening Hours:\n\nMon-Fri: 9:00 AM - 6:00 PM\nSaturday: 9:00 AM - 4:00 PM\nSunday: Closed\n\nWalk-ins welcome! ✨",
-                    order: "Perfect! Let's book your appointment. 📅\n\nWhich service interests you?\n\n1️⃣ Hair Services\n2️⃣ Nail Care\n3️⃣ Beauty Treatments\n\nWhat day works best for you?",
-                    location: "📍 Visit us at:\n\nIndependence Avenue, Windhoek\n(Opposite Wernhil Park)\n\nFree parking in the back! 🚗",
-                    price: "💰 Our Pricing:\n\nHair services from N$150\nNails from N$120\nBeauty treatments from N$200\n\n**Special:** First-time clients get 10% off! ✨",
-                    default: "✨ Welcome to Glam Beauty Salon!\n\nHow can I help you today?\n• View services 💅\n• Book appointment 📅\n• Check prices 💰\n• Get directions 📍\n\nLet me know! 😊"
-                }
+                flow: "booking",
+                greeting: "✨ Welcome to Glam Beauty Salon!",
+                browseLabel: "View our services \u{1F485}",
+                actLabel: "Book an appointment \u{1F4C5}",
+                catalogueTitle: "\u{1F485} Our Services",
+                catalogueOutro: "Reply 2 to book an appointment.",
+                phone: "+264 61 234 5678",
+                hours: { 1: [540, 1080], 2: [540, 1080], 3: [540, 1080], 4: [540, 1080], 5: [540, 1080], 6: [540, 960], 0: null },
+                location: {
+                    lines: ["Independence Avenue, Windhoek", "(Opposite Wernhil Park)"],
+                    note: "Free parking at the back! \u{1F697}",
+                    mapQuery: "Independence Avenue, Windhoek, Namibia"
+                },
+                priceNote: "Hair services from N$150\nNails from N$120\nBeauty treatments from N$200\n\n**Special:** first-time clients get 10% off! ✨",
+                booking: { note: "No deposit needed — pay after your appointment.", slotMinutes: 60 },
+                categories: [
+                    { name: "Hair", emoji: "\u{1F487}", items: [
+                        { name: "Wash & Blow Dry", price: 150 },
+                        { name: "Haircut", price: 180 },
+                        { name: "Color Treatment", price: 450 },
+                        { name: "Braids", price: 250, from: true }
+                    ]},
+                    { name: "Nails", emoji: "\u{1F485}", items: [
+                        { name: "Manicure", price: 120 },
+                        { name: "Pedicure", price: 150 },
+                        { name: "Gel Nails", price: 280 }
+                    ]},
+                    { name: "Beauty", emoji: "✨", items: [
+                        { name: "Facial", price: 200 },
+                        { name: "Makeup", price: 350 }
+                    ]}
+                ]
             },
+
             retail: {
                 name: "Tech Haven Electronics",
                 avatar: "TH",
                 type: "Electronics Retail",
-                responses: {
-                    menu: "💻 Featured Products:\n\n**Laptops:**\n• HP Pavilion - N$12,500\n• Dell Inspiron - N$14,800\n• MacBook Air - N$24,900\n\n**Phones:**\n• Samsung Galaxy - N$8,500\n• iPhone 14 - N$18,999\n\n**Accessories:**\n• Headphones - N$850+\n• Chargers - N$250+\n\nNeed help finding something? 🔍",
-                    hours: "⏰ Store Hours:\n\nMon-Fri: 8:00 AM - 6:00 PM\nSaturday: 9:00 AM - 5:00 PM\nSunday: 10:00 AM - 2:00 PM\n\nWe're OPEN now! 🎉",
-                    order: "Excellent choice! 🛒\n\nLet me help you:\n\n1️⃣ Check product availability\n2️⃣ Compare models\n3️⃣ Get payment options\n4️⃣ Arrange delivery\n\nWhat do you need?",
-                    location: "📍 Find us:\n\nGrote Street, Windhoek CBD\n(Near Game Stores)\n\nParking: Gustav Voigts Centre 🚗",
-                    price: "💰 We offer:\n\n• Competitive prices\n• Payment plans available\n• Trade-in options\n• 12-month warranty\n\nWhat product are you interested in?",
-                    default: "👋 Hi! Welcome to Tech Haven!\n\nI can help you:\n• Browse products 💻\n• Check prices 💰\n• Ask about stock 📦\n• Payment plans 💳\n\nWhat are you looking for?"
-                }
+                flow: "order",
+                greeting: "\u{1F44B} Hi! Welcome to Tech Haven!",
+                browseLabel: "Browse our products \u{1F4BB}",
+                actLabel: "Place an order \u{1F6D2}",
+                catalogueTitle: "\u{1F4BB} Featured Products",
+                catalogueOutro: "Reply 2 to order or reserve an item.",
+                phone: "+264 61 345 6789",
+                hours: { 1: [480, 1080], 2: [480, 1080], 3: [480, 1080], 4: [480, 1080], 5: [480, 1080], 6: [540, 1020], 0: [600, 840] },
+                location: {
+                    lines: ["Grote Street, Windhoek CBD", "(Near Game Stores)"],
+                    note: "Parking at Gustav Voigts Centre \u{1F697}",
+                    mapQuery: "Grote Street, Windhoek CBD, Namibia"
+                },
+                priceNote: "• Competitive prices, matched on request\n• Payment plans available\n• Trade-in options\n• 12-month warranty on everything",
+                delivery: { fee: 120, etaDelivery: "1–2 working days", etaCollect: "2 hours", radius: "Windhoek and Okahandja" },
+                categories: [
+                    { name: "Laptops", emoji: "\u{1F4BB}", items: [
+                        { name: "HP Pavilion", price: 12500 },
+                        { name: "Dell Inspiron", price: 14800 },
+                        { name: "MacBook Air", price: 24900 }
+                    ]},
+                    { name: "Phones", emoji: "\u{1F4F1}", items: [
+                        { name: "Samsung Galaxy", price: 8500 },
+                        { name: "iPhone 14", price: 18999 }
+                    ]},
+                    { name: "Accessories", emoji: "\u{1F3A7}", items: [
+                        { name: "Headphones", price: 850, from: true },
+                        { name: "Chargers", price: 250, from: true }
+                    ]}
+                ]
             },
+
             service: {
                 name: "QuickFix Services",
                 avatar: "QF",
                 type: "Home Services",
-                responses: {
-                    menu: "🔧 Our Services:\n\n**Plumbing:**\n• Leak repairs - N$350+\n• Pipe installation - N$500+\n• Drain cleaning - N$300\n\n**Electrical:**\n• Wiring - N$400+\n• Light fixtures - N$250\n• DB board - N$600+\n\n**General:**\n• Painting - N$80/sqm\n• Carpentry - N$450+\n\nNeed a quote? 📝",
-                    hours: "⏰ Available:\n\nMon-Fri: 7:00 AM - 6:00 PM\nSaturday: 8:00 AM - 2:00 PM\nSunday: Emergency only\n\n**24/7 Emergency:** +264 81 999 8888 🚨",
-                    order: "I'll help you book! 🗓️\n\nWhat service do you need?\n\n1️⃣ Plumbing\n2️⃣ Electrical\n3️⃣ Painting\n4️⃣ Carpentry\n5️⃣ Other\n\nWhen do you need it done?",
-                    location: "📍 Service Area:\n\nWindhoek & surrounding areas\n(Up to 30km radius)\n\nHead office: Katutura\n\nWe come to you! 🚐",
-                    price: "💰 Pricing:\n\n• Free quotes\n• Competitive rates\n• No hidden fees\n• Payment after completion\n\nCall-out fee: N$150 (waived if you book) ✨",
-                    default: "🔧 Hi! QuickFix Services here!\n\nWhat do you need help with?\n• Plumbing 🚰\n• Electrical ⚡\n• Painting 🎨\n• Carpentry 🪚\n• Get a quote 📝\n\nTell me more!"
-                }
+                flow: "booking",
+                greeting: "\u{1F527} Hi! QuickFix Services here!",
+                browseLabel: "View our services \u{1F527}",
+                actLabel: "Book a job \u{1F5D3}️",
+                catalogueTitle: "\u{1F527} Our Services",
+                catalogueOutro: "Reply 2 to book a job or get a quote.",
+                phone: "+264 81 999 8888",
+                hours: { 1: [420, 1080], 2: [420, 1080], 3: [420, 1080], 4: [420, 1080], 5: [420, 1080], 6: [480, 840], 0: null },
+                hoursNote: "**24/7 Emergency:** +264 81 999 8888 \u{1F6A8}",
+                location: {
+                    lines: ["Windhoek & surrounding areas", "(up to 30 km radius)", "Head office: Katutura"],
+                    note: "We come to you! \u{1F690}",
+                    mapQuery: "Katutura, Windhoek, Namibia"
+                },
+                priceNote: "• Free quotes\n• Competitive rates, no hidden fees\n• Payment after completion\n\nCall-out fee: N$150 — waived when you book on WhatsApp ✨",
+                booking: { note: "Call-out fee waived on WhatsApp bookings. Final price is confirmed on site.", slotMinutes: 120 },
+                categories: [
+                    { name: "Plumbing", emoji: "\u{1F6B0}", items: [
+                        { name: "Leak repairs", price: 350, from: true },
+                        { name: "Pipe installation", price: 500, from: true },
+                        { name: "Drain cleaning", price: 300 }
+                    ]},
+                    { name: "Electrical", emoji: "⚡", items: [
+                        { name: "Wiring", price: 400, from: true },
+                        { name: "Light fixtures", price: 250 },
+                        { name: "DB board", price: 600, from: true }
+                    ]},
+                    { name: "General", emoji: "\u{1F3A8}", items: [
+                        { name: "Painting (per m²)", price: 80 },
+                        { name: "Carpentry", price: 450, from: true }
+                    ]}
+                ]
             }
         };
 
-        let currentBusiness = 'restaurant';
+        /* ---------------------------- helpers ---------------------------- */
+
+        const NUM_EMOJI = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "\u{1F51F}"];
+        const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const DAY_LONG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+        const WORD_NUMBERS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+        const NUDGE = "Sorry, I didn't catch that \u{1F914}";
+
+        function numBullet(n) {
+            return NUM_EMOJI[n] || (n + ".");
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, function (c) {
+                return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+            });
+        }
+
+        function formatMessage(text) {
+            return escapeHtml(text)
+                .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+                .replace(/\n/g, "<br>");
+        }
+
+        function money(amount) {
+            return "N$" + Number(amount).toLocaleString("en-NA");
+        }
+
+        // 24-hour clock: Namibia does not use AM/PM in everyday writing.
+        function fmtMinutes(minutes) {
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
+        }
+
+        function fmtClock(date) {
+            return String(date.getHours()).padStart(2, "0") + ":" + String(date.getMinutes()).padStart(2, "0");
+        }
+
+        function itemPriceLabel(item) {
+            return money(item.price) + (item.from ? "+" : "");
+        }
+
+        /* Opening hours are grouped into ranges (Mon–Sat, Sun, ...) rather
+           than listed day by day, and "open now" is computed, never asserted. */
+        function hoursSummary(business) {
+            const groups = [];
+            WEEK_ORDER.forEach(function (day) {
+                const hours = business.hours[day];
+                const key = hours ? hours.join("-") : "closed";
+                const last = groups[groups.length - 1];
+                if (last && last.key === key) {
+                    last.days.push(day);
+                } else {
+                    groups.push({ key: key, days: [day], hours: hours });
+                }
+            });
+
+            return groups.map(function (group) {
+                const label = group.days.length === 1
+                    ? DAY_SHORT[group.days[0]]
+                    : DAY_SHORT[group.days[0]] + "–" + DAY_SHORT[group.days[group.days.length - 1]];
+                const value = group.hours
+                    ? fmtMinutes(group.hours[0]) + " – " + fmtMinutes(group.hours[1])
+                    : "Closed";
+                return label + ": " + value;
+            }).join("\n");
+        }
+
+        function openState(business, now) {
+            now = now || new Date();
+            const minutes = now.getHours() * 60 + now.getMinutes();
+            const today = business.hours[now.getDay()];
+
+            if (today && minutes >= today[0] && minutes < today[1]) {
+                return { open: true, text: "We're **OPEN** right now — until " + fmtMinutes(today[1]) + " today. \u{1F389}" };
+            }
+            if (today && minutes < today[0]) {
+                return { open: false, text: "We're **closed** at the moment — we open at " + fmtMinutes(today[0]) + " today. ⏳" };
+            }
+            for (let i = 1; i <= 7; i++) {
+                const day = (now.getDay() + i) % 7;
+                if (business.hours[day]) {
+                    const when = i === 1 ? "tomorrow" : "on " + DAY_LONG[day];
+                    return { open: false, text: "We're **closed** at the moment — we reopen " + when + " at " + fmtMinutes(business.hours[day][0]) + ". ⏳" };
+                }
+            }
+            return { open: false, text: "We're **closed** at the moment." };
+        }
+
+        function dayLabel(date, offset) {
+            const stamp = DAY_SHORT[date.getDay()] + " " + date.getDate() + " " + MONTH_SHORT[date.getMonth()];
+            if (offset === 0) return "Today (" + stamp + ")";
+            if (offset === 1) return "Tomorrow (" + stamp + ")";
+            return DAY_LONG[date.getDay()] + " " + date.getDate() + " " + MONTH_SHORT[date.getMonth()];
+        }
+
+        /* Bookable slots come from the same hours table as the "open now"
+           answer, so the two can never disagree. */
+        function bookableDays(business, count) {
+            const slotSize = (business.booking && business.booking.slotMinutes) || 60;
+            const now = new Date();
+            const nowMinutes = now.getHours() * 60 + now.getMinutes();
+            const days = [];
+
+            for (let offset = 0; offset < 21 && days.length < count; offset++) {
+                const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+                const hours = business.hours[date.getDay()];
+                if (!hours) continue;
+
+                const slots = [];
+                for (let start = hours[0]; start + slotSize <= hours[1]; start += slotSize) {
+                    if (offset === 0 && start < nowMinutes + 60) continue;
+                    slots.push(start);
+                }
+                if (slots.length) days.push({ date: date, offset: offset, slots: slots });
+            }
+            return days;
+        }
+
+        /* ------------------------- conversation --------------------------- */
+
+        let currentBusiness = "restaurant";
+        let session = null;
+        let captured = [];
+        let referenceSeq = 1041;
+        let pendingReply = null;
+
+        function newSession() {
+            return { step: "main", cart: [], category: null, item: null, days: null, day: null, slot: null, fulfilment: null, address: null, customerName: null };
+        }
+
+        function business() {
+            return businesses[currentBusiness];
+        }
+
+        function nextReference(prefix) {
+            referenceSeq += 7;
+            return prefix + "-" + referenceSeq;
+        }
+
+        function mainMenuText(business) {
+            return business.greeting + "\n\nI can help you with:\n" +
+                numBullet(1) + " " + business.browseLabel + "\n" +
+                numBullet(2) + " " + business.actLabel + "\n" +
+                numBullet(3) + " Check opening hours ⏰\n" +
+                numBullet(4) + " Get directions \u{1F4CD}\n" +
+                numBullet(5) + " See prices \u{1F4B0}\n" +
+                numBullet(6) + " Talk to a human \u{1F464}\n\n" +
+                "Reply with a number (1–6) — or just type your question.";
+        }
+
+        function mainMenuChips(business) {
+            return [
+                { label: "1 · " + business.browseLabel, value: "1" },
+                { label: "2 · " + business.actLabel, value: "2" },
+                { label: "3 · Hours", value: "3" },
+                { label: "4 · Directions", value: "4" },
+                { label: "5 · Prices", value: "5" },
+                { label: "6 · Human", value: "6" }
+            ];
+        }
+
+        function catalogueText(business) {
+            const sections = business.categories.map(function (category) {
+                const items = category.items.map(function (item) {
+                    return "• " + item.name + " - " + itemPriceLabel(item);
+                }).join("\n");
+                return "**" + category.emoji + " " + category.name + "**\n" + items;
+            }).join("\n\n");
+            return business.catalogueTitle + ":\n\n" + sections + "\n\n" + business.catalogueOutro;
+        }
+
+        function categoryPromptText(business) {
+            const lines = business.categories.map(function (category, index) {
+                return numBullet(index + 1) + " " + category.emoji + " " + category.name;
+            }).join("\n");
+            const intro = business.flow === "order"
+                ? "Great! Let's build your order. \u{1F6D2}\n\nWhich section?"
+                : "Perfect, let's get you booked. \u{1F4C5}\n\nWhich service area?";
+            return intro + "\n\n" + lines + "\n\nReply with a number, or 0 for the main menu.";
+        }
+
+        function itemPromptText(category, flow) {
+            const lines = category.items.map(function (item, index) {
+                return numBullet(index + 1) + " " + item.name + " - " + itemPriceLabel(item);
+            }).join("\n");
+            const verb = flow === "order" ? "add" : "book";
+            return "**" + category.emoji + " " + category.name + "**\n\n" + lines +
+                "\n\nReply with the number of the item you'd like to " + verb + ", or 0 for the main menu.";
+        }
+
+        function optionChips(labels, extra) {
+            const chips = labels.map(function (label, index) {
+                return { label: (index + 1) + " · " + label, value: String(index + 1) };
+            });
+            return chips.concat(extra || []);
+        }
+
+        function backChip() {
+            return { label: "0 · Main menu", value: "0" };
+        }
+
+        function cartLines(session) {
+            return session.cart.map(function (line) {
+                return "• " + line.qty + " × " + line.name + " — " + money(line.qty * line.price);
+            }).join("\n");
+        }
+
+        function cartSubtotal(session) {
+            return session.cart.reduce(function (total, line) {
+                return total + line.qty * line.price;
+            }, 0);
+        }
+
+        /* ------------------------- input parsing -------------------------- */
+
+        function parseChoice(text, max) {
+            const cleaned = text.trim().toLowerCase().replace(/[.)\]]+$/, "");
+            const digits = cleaned.replace(/[️⃣]/g, "");
+            let value = NaN;
+
+            if (/^\d+$/.test(digits)) {
+                value = parseInt(digits, 10);
+            } else if (WORD_NUMBERS[cleaned] !== undefined) {
+                value = WORD_NUMBERS[cleaned];
+            } else {
+                const emojiIndex = NUM_EMOJI.indexOf(text.trim());
+                if (emojiIndex > -1) value = emojiIndex;
+            }
+
+            if (isNaN(value) || value < 0 || (max !== undefined && value > max)) return null;
+            return value;
+        }
+
+        function matchByName(text, items) {
+            const needle = text.trim().toLowerCase();
+            if (needle.length < 3) return -1;
+            return items.findIndex(function (item) {
+                return item.name.toLowerCase().indexOf(needle) > -1;
+            });
+        }
+
+        function globalCommand(text) {
+            const cleaned = text.trim().toLowerCase().replace(/[!?.]+$/, "");
+            if (["0", "menu options", "main menu", "home", "start", "restart", "back", "hi", "hello", "hey", "start over"].indexOf(cleaned) > -1) return "main";
+            if (["cancel", "stop", "nevermind", "never mind", "forget it"].indexOf(cleaned) > -1) return "cancel";
+            if (["human", "agent", "person", "talk to a human", "speak to someone", "manager", "owner"].indexOf(cleaned) > -1) return "human";
+            if (["help", "?"].indexOf(cleaned) > -1) return "main";
+            return null;
+        }
+
+        function intentFromText(text) {
+            const message = text.toLowerCase();
+            if (/\b(menu|services|service list|products|catalogue|catalog|what do you (have|sell|offer))\b/.test(message)) return "browse";
+            if (/\b(order|buy|book|booking|appointment|reserve|quote|purchase)\b/.test(message)) return "act";
+            if (/\b(hour|hours|open|opening|close|closing|time|today)\b/.test(message)) return "hours";
+            if (/\b(where|location|address|directions|find you|situated)\b/.test(message)) return "location";
+            if (/\b(price|prices|pricing|cost|costs|how much|charge|fee)\b/.test(message)) return "prices";
+            return null;
+        }
+
+        /* --------------------------- rendering ---------------------------- */
+
+        function chatEl() {
+            return document.getElementById("chatMessages");
+        }
+
+        function appendMessage(role, text, link) {
+            const container = chatEl();
+            if (!container) return;
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "message " + role;
+
+            const bubble = document.createElement("div");
+            bubble.className = "message-bubble";
+
+            const body = document.createElement("div");
+            body.className = "message-text";
+            body.innerHTML = formatMessage(text);
+            bubble.appendChild(body);
+
+            if (link) {
+                const anchor = document.createElement("a");
+                anchor.className = "message-link";
+                anchor.href = link.href;
+                anchor.target = "_blank";
+                anchor.rel = "noopener noreferrer";
+                anchor.textContent = link.label;
+                bubble.appendChild(anchor);
+            }
+
+            const stamp = document.createElement("div");
+            stamp.className = "message-time";
+            stamp.textContent = fmtClock(new Date());
+            bubble.appendChild(stamp);
+
+            wrapper.appendChild(bubble);
+            container.appendChild(wrapper);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addBotMessageToChat(text, link) {
+            appendMessage("bot", text, link);
+        }
+
+        function addCustomerMessageToChat(text) {
+            appendMessage("customer", text);
+        }
+
+        function showTyping() {
+            const container = chatEl();
+            if (!container || container.querySelector(".chat-typing")) return;
+            const indicator = document.createElement("div");
+            indicator.className = "chat-typing";
+            indicator.innerHTML = '<div class="message-bubble"><span></span><span></span><span></span></div>';
+            container.appendChild(indicator);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function hideTyping() {
+            const container = chatEl();
+            if (!container) return;
+            const indicator = container.querySelector(".chat-typing");
+            if (indicator) indicator.remove();
+        }
+
+        function setChips(chips) {
+            const container = document.getElementById("chatQuickReplies");
+            if (!container) return;
+            container.textContent = "";
+            (chips || []).forEach(function (chip) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "quick-reply";
+                button.textContent = chip.label;
+                button.addEventListener("click", function () {
+                    sendCustomerText(chip.value);
+                });
+                container.appendChild(button);
+            });
+        }
+
+        function renderSuggestions() {
+            const container = document.getElementById("demoSuggestions");
+            if (!container) return;
+            const active = business();
+            const prompts = active.flow === "order"
+                ? ["What's on your menu?", "I want to order", "What time do you close?", "Where are you?", "Can I speak to a human?"]
+                : ["What services do you offer?", "I want to book", "Are you open now?", "How much do you charge?", "Can I speak to a human?"];
+
+            container.textContent = "";
+            prompts.forEach(function (prompt) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.style.cssText = "padding: 8px 15px; background: white; border: 1px solid #e5e7eb; border-radius: 20px; cursor: pointer; font-size: 13px;";
+                button.textContent = prompt;
+                button.addEventListener("click", function () {
+                    quickQuestion(prompt);
+                });
+                container.appendChild(button);
+            });
+        }
+
+        function renderCaptureLog() {
+            const list = document.getElementById("demoCaptureList");
+            const empty = document.getElementById("demoCaptureEmpty");
+            if (!list || !empty) return;
+
+            list.textContent = "";
+            empty.style.display = captured.length ? "none" : "block";
+
+            captured.slice().reverse().forEach(function (record) {
+                const item = document.createElement("div");
+                item.className = "capture-item";
+
+                const head = document.createElement("div");
+                head.className = "capture-item-head";
+                const title = document.createElement("span");
+                title.textContent = record.reference + " · " + record.businessName;
+                const badge = document.createElement("span");
+                badge.className = "capture-badge";
+                badge.textContent = record.kind;
+                head.appendChild(title);
+                head.appendChild(badge);
+
+                const meta = document.createElement("div");
+                meta.className = "capture-item-meta";
+                meta.textContent = record.summary;
+
+                item.appendChild(head);
+                item.appendChild(meta);
+                list.appendChild(item);
+            });
+        }
+
+        function captureRecord(kind, summary) {
+            captured.push({
+                kind: kind,
+                reference: nextReference(kind === "order" ? "ORD" : "BKG"),
+                businessName: business().name,
+                summary: summary,
+                at: new Date()
+            });
+            renderCaptureLog();
+            return captured[captured.length - 1];
+        }
+
+        /* ------------------------- flow handlers -------------------------- */
+
+        function reply(text, chips, link) {
+            addBotMessageToChat(text, link);
+            setChips(chips);
+        }
+
+        function goMain(prefix) {
+            const active = business();
+            session.step = "main";
+            session.category = null;
+            session.item = null;
+            reply((prefix ? prefix + "\n\n" : "") + mainMenuText(active), mainMenuChips(active));
+        }
+
+        function showCatalogue() {
+            const active = business();
+            session.step = "main";
+            reply(catalogueText(active), [
+                { label: "2 · " + active.actLabel, value: "2" },
+                { label: "5 · Prices", value: "5" },
+                backChip()
+            ]);
+        }
+
+        function showHours() {
+            const active = business();
+            const state = openState(active);
+            let text = "⏰ Our opening hours:\n\n" + hoursSummary(active) + "\n\n" + state.text;
+            if (active.hoursNote) text += "\n\n" + active.hoursNote;
+            session.step = "main";
+            reply(text, [
+                { label: "2 · " + active.actLabel, value: "2" },
+                backChip()
+            ]);
+        }
+
+        function showLocation() {
+            const active = business();
+            const text = "\u{1F4CD} Find us at:\n\n" + active.location.lines.join("\n") + "\n\n" + active.location.note;
+            session.step = "main";
+            reply(text, [{ label: "3 · Hours", value: "3" }, backChip()], {
+                href: "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(active.location.mapQuery),
+                label: "Open in Google Maps ↗"
+            });
+        }
+
+        function showPrices() {
+            const active = business();
+            session.step = "main";
+            reply("\u{1F4B0} Pricing:\n\n" + active.priceNote, [
+                { label: "1 · " + active.browseLabel, value: "1" },
+                { label: "2 · " + active.actLabel, value: "2" },
+                backChip()
+            ]);
+        }
+
+        function handOverToHuman() {
+            const active = business();
+            session.step = "human";
+            document.getElementById("chatBusinessStatus").textContent = "Online • Human taking over";
+            reply("No problem — I'm handing you to the team now. \u{1F464}\n\nThe AI has paused this conversation and " + active.name +
+                " has been notified. Someone will reply here shortly.\n\nYou can also call **" + active.phone +
+                "**.\n\nReply 0 at any time to bring the AI assistant back.", [backChip()]);
+        }
+
+        function startFlow() {
+            const active = business();
+            session.step = "category";
+            reply(categoryPromptText(active), optionChips(active.categories.map(function (category) {
+                return category.name;
+            }), [backChip()]));
+        }
+
+        function askQuantity() {
+            const item = session.item;
+            session.step = "quantity";
+            reply("**" + item.name + "** — " + itemPriceLabel(item) + " each.\n\nHow many would you like?\n\n" +
+                numBullet(1) + " One\n" + numBullet(2) + " Two\n" + numBullet(3) + " Three\n\nOr type any number.",
+                [
+                    { label: "1", value: "1" },
+                    { label: "2", value: "2" },
+                    { label: "3", value: "3" },
+                    { label: "Cancel", value: "cancel" }
+                ]);
+        }
+
+        function showCart(nudge) {
+            session.step = "cart";
+            const subtotal = cartSubtotal(session);
+            reply((nudge ? nudge + "\n\n" : "") + "\u{1F6D2} Your order so far:\n\n" + cartLines(session) + "\n\n**Subtotal: " + money(subtotal) + "**\n\n" +
+                numBullet(1) + " Add another item\n" +
+                numBullet(2) + " Checkout\n" +
+                numBullet(3) + " Clear the order\n\nReply with a number.", [
+                    { label: "1 · Add another", value: "1" },
+                    { label: "2 · Checkout", value: "2" },
+                    { label: "3 · Clear", value: "3" }
+                ]);
+        }
+
+        function askFulfilment(nudge) {
+            const active = business();
+            session.step = "fulfilment";
+            reply((nudge ? nudge + "\n\n" : "") + "How would you like to receive it?\n\n" +
+                numBullet(1) + " Delivery (" + money(active.delivery.fee) + ", " + active.delivery.etaDelivery + ")\n" +
+                numBullet(2) + " Collection (ready in " + active.delivery.etaCollect + ")\n\n" +
+                "Delivery area: " + active.delivery.radius + ".", [
+                    { label: "1 · Delivery", value: "1" },
+                    { label: "2 · Collection", value: "2" }
+                ]);
+        }
+
+        function askAddress() {
+            session.step = "address";
+            reply("Thanks! What's the delivery address? \u{1F3E0}\n\nType it in your own words — street, suburb and any landmark helps.", [
+                { label: "Cancel", value: "cancel" }
+            ]);
+        }
+
+        function confirmOrder(nudge) {
+            const active = business();
+            session.step = "confirm-order";
+            const subtotal = cartSubtotal(session);
+            const fee = session.fulfilment === "delivery" ? active.delivery.fee : 0;
+            const total = subtotal + fee;
+
+            let text = (nudge ? nudge + "\n\n" : "") + "Please check your order: \u{1F9FE}\n\n" + cartLines(session) + "\n\nSubtotal: " + money(subtotal);
+            if (fee) text += "\nDelivery: " + money(fee);
+            text += "\n**Total: " + money(total) + "**\n\n";
+            text += session.fulfilment === "delivery"
+                ? "Delivery to: " + session.address + "\nETA: " + active.delivery.etaDelivery
+                : "Collection at: " + active.location.lines[0] + "\nReady: in " + active.delivery.etaCollect;
+            text += "\n\n" + numBullet(1) + " Confirm order ✅\n" + numBullet(2) + " Cancel ❌";
+
+            reply(text, [
+                { label: "1 · Confirm", value: "1" },
+                { label: "2 · Cancel", value: "2" }
+            ]);
+        }
+
+        function placeOrder() {
+            const active = business();
+            const subtotal = cartSubtotal(session);
+            const fee = session.fulfilment === "delivery" ? active.delivery.fee : 0;
+            const total = subtotal + fee;
+
+            const summary = cartLines(session).replace(/• /g, "") +
+                "\nTotal: " + money(total) +
+                "\n" + (session.fulfilment === "delivery" ? "Delivery to " + session.address : "Collection at " + active.location.lines[0]) +
+                "\nCaptured " + fmtClock(new Date());
+
+            const record = captureRecord("order", summary);
+            const state = openState(active);
+
+            let text = "✅ Order confirmed!\n\n**Reference: " + record.reference + "**\nTotal: " + money(total) + "\n\n";
+            text += session.fulfilment === "delivery"
+                ? "We'll deliver to " + session.address + " in about " + active.delivery.etaDelivery + "."
+                : "Your order will be ready for collection in about " + active.delivery.etaCollect + " at " + active.location.lines[0] + ".";
+            text += "\n\n" + active.name + " has been notified and the order is saved against your number. \u{1F4E9}";
+            if (!state.open) text += "\n\nHeads up: we're closed right now, so the team will start on it when we open.";
+            text += "\n\nReply 0 for the main menu — or 2 to order again.";
+
+            session.cart = [];
+            session.fulfilment = null;
+            session.address = null;
+            session.step = "main";
+            reply(text, mainMenuChips(active));
+        }
+
+        function askDay(nudge) {
+            const active = business();
+            const days = bookableDays(active, 5);
+            if (!days.length) {
+                session.step = "main";
+                reply("We don't have open slots in the next while — please call **" + active.phone + "** and the team will sort you out. \u{1F4DE}", [backChip()]);
+                return;
+            }
+
+            session.days = days;
+            session.step = "day";
+            const lines = days.map(function (day, index) {
+                return numBullet(index + 1) + " " + dayLabel(day.date, day.offset);
+            }).join("\n");
+            reply((nudge ? nudge + "\n\n" : "") + "**" + session.item.name + "** — " + itemPriceLabel(session.item) + "\n\nWhich day suits you?\n\n" + lines +
+                "\n\nReply with a number, or 0 for the main menu.",
+                optionChips(days.map(function (day) {
+                    return dayLabel(day.date, day.offset);
+                }), [backChip()]));
+        }
+
+        function askSlot(nudge) {
+            session.step = "slot";
+            const slots = session.day.slots;
+            const lines = slots.map(function (slot, index) {
+                return numBullet(index + 1) + " " + fmtMinutes(slot);
+            }).join("\n");
+            reply((nudge ? nudge + "\n\n" : "") + "Available times on " + dayLabel(session.day.date, session.day.offset) + ":\n\n" + lines +
+                "\n\nReply with a number to take that slot.",
+                optionChips(slots.map(fmtMinutes), [backChip()]));
+        }
+
+        function askName() {
+            session.step = "name";
+            reply("Almost done — what name should I put the booking under? \u{1F464}", [{ label: "Cancel", value: "cancel" }]);
+        }
+
+        function confirmBooking(nudge) {
+            const active = business();
+            session.step = "confirm-booking";
+            reply((nudge ? nudge + "\n\n" : "") + "Please check your booking: \u{1F5D3}️\n\nService: " + session.item.name +
+                "\nPrice: " + itemPriceLabel(session.item) +
+                "\nWhen: " + dayLabel(session.day.date, session.day.offset) + " at " + fmtMinutes(session.slot) +
+                "\nName: " + session.customerName +
+                "\n\n" + active.booking.note + "\n\n" +
+                numBullet(1) + " Confirm booking ✅\n" + numBullet(2) + " Cancel ❌", [
+                    { label: "1 · Confirm", value: "1" },
+                    { label: "2 · Cancel", value: "2" }
+                ]);
+        }
+
+        function placeBooking() {
+            const active = business();
+            const summary = session.item.name + " — " + itemPriceLabel(session.item) +
+                "\n" + dayLabel(session.day.date, session.day.offset) + " at " + fmtMinutes(session.slot) +
+                "\nName: " + session.customerName +
+                "\nCaptured " + fmtClock(new Date());
+
+            const record = captureRecord("booking", summary);
+
+            const text = "✅ Booking confirmed!\n\n**Reference: " + record.reference + "**\n" +
+                session.item.name + " on " + dayLabel(session.day.date, session.day.offset) + " at " + fmtMinutes(session.slot) +
+                "\n\n" + active.name + " has been notified" +
+                (session.day.offset === 0 ? " — see you later today. " : " and you'll get a reminder here the day before. ") + active.booking.note +
+                "\n\nNeed to change it? Reply 6 to reach a human.\n\nReply 0 for the main menu.";
+
+            session.item = null;
+            session.day = null;
+            session.slot = null;
+            session.customerName = null;
+            session.step = "main";
+            reply(text, mainMenuChips(active));
+        }
+
+        /* ---------------------------- the router -------------------------- */
+
+        function routeMessage(raw) {
+            const active = business();
+            const text = raw.trim();
+            const command = globalCommand(text);
+
+            if (command === "human" && session.step !== "human") {
+                handOverToHuman();
+                return;
+            }
+            if (command === "cancel") {
+                session = newSession();
+                goMain("No problem, I've cancelled that. \u{1F44C}");
+                return;
+            }
+            if (command === "main") {
+                if (session.step === "human") {
+                    document.getElementById("chatBusinessStatus").textContent = "Online • AI Agent Active";
+                }
+                session = newSession();
+                goMain(null);
+                return;
+            }
+
+            switch (session.step) {
+                case "human":
+                    reply("Thanks — your message is with the team and someone will reply here soon. \u{1F464}\n\nReply 0 to bring the AI assistant back.", [backChip()]);
+                    return;
+
+                case "main": {
+                    const choice = parseChoice(text, 6);
+                    const intent = choice === null ? intentFromText(text) : null;
+
+                    if (choice === 1 || intent === "browse") { showCatalogue(); return; }
+                    if (choice === 2 || intent === "act") { startFlow(); return; }
+                    if (choice === 3 || intent === "hours") { showHours(); return; }
+                    if (choice === 4 || intent === "location") { showLocation(); return; }
+                    if (choice === 5 || intent === "prices") { showPrices(); return; }
+                    if (choice === 6) { handOverToHuman(); return; }
+
+                    goMain("I'm not sure I understood that one. \u{1F914} Here's what I can do — reply with a number and I'll take it from there.");
+                    return;
+                }
+
+                case "category": {
+                    const choice = parseChoice(text, active.categories.length);
+                    const index = choice ? choice - 1 : matchByName(text, active.categories);
+                    if (!active.categories[index]) {
+                        reply("Please reply with a number between 1 and " + active.categories.length + ", or 0 for the main menu.",
+                            optionChips(active.categories.map(function (c) { return c.name; }), [backChip()]));
+                        return;
+                    }
+                    session.category = active.categories[index];
+                    session.step = "item";
+                    reply(itemPromptText(session.category, active.flow),
+                        optionChips(session.category.items.map(function (item) { return item.name; }), [backChip()]));
+                    return;
+                }
+
+                case "item": {
+                    const items = session.category.items;
+                    const choice = parseChoice(text, items.length);
+                    const index = choice ? choice - 1 : matchByName(text, items);
+                    if (!items[index]) {
+                        reply("Please reply with a number between 1 and " + items.length + ", or 0 to go back.",
+                            optionChips(items.map(function (item) { return item.name; }), [backChip()]));
+                        return;
+                    }
+                    session.item = items[index];
+                    if (active.flow === "order") {
+                        askQuantity();
+                    } else {
+                        askDay();
+                    }
+                    return;
+                }
+
+                case "quantity": {
+                    const qty = parseChoice(text, 99);
+                    if (qty === null || qty < 1) {
+                        reply("How many would you like? Please reply with a number between 1 and 99.", [
+                            { label: "1", value: "1" }, { label: "2", value: "2" }, { label: "3", value: "3" }
+                        ]);
+                        return;
+                    }
+                    const existing = session.cart.find(function (line) { return line.name === session.item.name; });
+                    if (existing) {
+                        existing.qty += qty;
+                    } else {
+                        session.cart.push({ name: session.item.name, price: session.item.price, qty: qty });
+                    }
+                    session.item = null;
+                    showCart();
+                    return;
+                }
+
+                case "cart": {
+                    const choice = parseChoice(text, 3);
+                    if (choice === 1) { startFlow(); return; }
+                    if (choice === 2) { askFulfilment(); return; }
+                    if (choice === 3) {
+                        session.cart = [];
+                        goMain("Order cleared. \u{1F5D1}️");
+                        return;
+                    }
+                    showCart(NUDGE);
+                    return;
+                }
+
+                case "fulfilment": {
+                    const choice = parseChoice(text, 2);
+                    if (choice === 1) { session.fulfilment = "delivery"; askAddress(); return; }
+                    if (choice === 2) { session.fulfilment = "collection"; confirmOrder(); return; }
+                    askFulfilment(NUDGE);
+                    return;
+                }
+
+                case "address": {
+                    if (text.length < 5) {
+                        reply("I need a little more detail for the driver — street and suburb at least. \u{1F697}", [{ label: "Cancel", value: "cancel" }]);
+                        return;
+                    }
+                    session.address = text;
+                    confirmOrder();
+                    return;
+                }
+
+                case "confirm-order": {
+                    const choice = parseChoice(text, 2);
+                    if (choice === 1 || /^(yes|yebo|confirm|ok|okay|sure)$/i.test(text)) { placeOrder(); return; }
+                    if (choice === 2 || /^no$/i.test(text)) {
+                        session.cart = [];
+                        session.fulfilment = null;
+                        session.address = null;
+                        goMain("Order cancelled — nothing has been sent to the kitchen. \u{1F44C}");
+                        return;
+                    }
+                    confirmOrder(NUDGE);
+                    return;
+                }
+
+                case "day": {
+                    const choice = parseChoice(text, session.days.length);
+                    if (choice === null || choice < 1 || !session.days[choice - 1]) {
+                        askDay(NUDGE);
+                        return;
+                    }
+                    session.day = session.days[choice - 1];
+                    askSlot();
+                    return;
+                }
+
+                case "slot": {
+                    const slots = session.day.slots;
+                    const choice = parseChoice(text, slots.length);
+                    if (choice === null || choice < 1 || slots[choice - 1] === undefined) {
+                        askSlot(NUDGE);
+                        return;
+                    }
+                    session.slot = slots[choice - 1];
+                    askName();
+                    return;
+                }
+
+                case "name": {
+                    if (text.length < 2) {
+                        askName();
+                        return;
+                    }
+                    session.customerName = text;
+                    confirmBooking();
+                    return;
+                }
+
+                case "confirm-booking": {
+                    const choice = parseChoice(text, 2);
+                    if (choice === 1 || /^(yes|yebo|confirm|ok|okay|sure)$/i.test(text)) { placeBooking(); return; }
+                    if (choice === 2 || /^no$/i.test(text)) {
+                        goMain("Booking cancelled — nothing was reserved. \u{1F44C}");
+                        return;
+                    }
+                    confirmBooking(NUDGE);
+                    return;
+                }
+
+                default:
+                    goMain(null);
+            }
+        }
+
+        /* --------------------------- entry points ------------------------- */
+
+        function sendCustomerText(raw) {
+            const text = String(raw == null ? "" : raw).trim();
+            if (!text || pendingReply) return;
+
+            addCustomerMessageToChat(text);
+            setChips([]);
+            showTyping();
+
+            pendingReply = setTimeout(function () {
+                pendingReply = null;
+                hideTyping();
+                routeMessage(text);
+            }, 700);
+        }
+
+        function sendCustomerMessage() {
+            const input = document.getElementById("customerMessage");
+            const text = input.value;
+            if (!text.trim()) return;
+            input.value = "";
+            sendCustomerText(text);
+        }
+
+        function quickQuestion(question) {
+            const input = document.getElementById("customerMessage");
+            if (input) input.value = "";
+            sendCustomerText(question);
+        }
+
+        function handleEnter(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                sendCustomerMessage();
+            }
+        }
+
+        function resetConversation() {
+            if (pendingReply) {
+                clearTimeout(pendingReply);
+                pendingReply = null;
+            }
+            const active = business();
+            session = newSession();
+
+            const avatar = document.getElementById("chatAvatar");
+            const name = document.getElementById("chatBusinessName");
+            const status = document.getElementById("chatBusinessStatus");
+            if (avatar) avatar.textContent = active.avatar;
+            if (name) name.textContent = active.name;
+            if (status) status.textContent = "Online • AI Agent Active";
+
+            const container = chatEl();
+            if (container) container.textContent = "";
+
+            renderSuggestions();
+            renderCaptureLog();
+            reply(mainMenuText(active), mainMenuChips(active));
+        }
+
+        function switchBusiness() {
+            const select = document.getElementById("businessTypeSelect");
+            currentBusiness = select.value;
+            resetConversation();
+        }
+
+        window.addEventListener("load", function () {
+            if (document.getElementById("chatMessages")) resetConversation();
+        });
 
         function showDemo(type) {
             document.getElementById('landingPage').style.display = 'none';
@@ -1534,96 +2706,6 @@
             document.getElementById('adminViewTitle').textContent = titles[viewId];
         }
 
-        function switchBusiness() {
-            const select = document.getElementById('businessTypeSelect');
-            currentBusiness = select.value;
-            const business = businesses[currentBusiness];
-            
-            document.getElementById('chatAvatar').textContent = business.avatar;
-            document.getElementById('chatBusinessName').textContent = business.name;
-            document.getElementById('chatBusinessStatus').textContent = 'Online • AI Agent Active';
-            
-            document.getElementById('chatMessages').innerHTML = '';
-            addBotMessageToChat(business.responses.default);
-        }
-
-        function addBotMessageToChat(text) {
-            const chatMessages = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message bot';
-            messageDiv.innerHTML = `
-                <div class="message-bubble">
-                    <div class="message-text">${text.replace(/\n/g, '<br>')}</div>
-                    <div class="message-time">${new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}</div>
-                </div>
-            `;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function addCustomerMessageToChat(text) {
-            const chatMessages = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message customer';
-            messageDiv.innerHTML = `
-                <div class="message-bubble">
-                    <div class="message-text">${text}</div>
-                    <div class="message-time">${new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}</div>
-                </div>
-            `;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function sendCustomerMessage() {
-            const input = document.getElementById('customerMessage');
-            const message = input.value.trim();
-            
-            if (message) {
-                addCustomerMessageToChat(message);
-                input.value = '';
-                
-                setTimeout(() => {
-                    respondToMessage(message.toLowerCase());
-                }, 1000);
-            }
-        }
-
-        function respondToMessage(message) {
-            const business = businesses[currentBusiness];
-            let response = business.responses.default;
-            
-            if (message.includes('menu') || message.includes('service') || message.includes('product')) {
-                response = business.responses.menu;
-            } else if (message.includes('hour') || message.includes('open') || message.includes('time')) {
-                response = business.responses.hours;
-            } else if (message.includes('order') || message.includes('book') || message.includes('appointment') || message.includes('buy')) {
-                response = business.responses.order;
-            } else if (message.includes('location') || message.includes('where') || message.includes('address')) {
-                response = business.responses.location;
-            } else if (message.includes('price') || message.includes('cost') || message.includes('how much')) {
-                response = business.responses.price;
-            }
-            
-            addBotMessageToChat(response);
-        }
-
-        function quickQuestion(question) {
-            document.getElementById('customerMessage').value = question;
-            sendCustomerMessage();
-        }
-
-        function handleEnter(event) {
-            if (event.key === 'Enter') {
-                sendCustomerMessage();
-            }
-        }
-
-        window.addEventListener('load', () => {
-            if (document.getElementById('chatMessages')) {
-                addBotMessageToChat(businesses.restaurant.responses.default);
-            }
-        });
     </script>
 </body>
 </html>
